@@ -1,0 +1,45 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from keras.models import Model
+from keras.datasets import mnist
+from keras.utils import to_categorical, plot_model
+from keras.layers import Input, Dense, Activation, Dropout
+
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+n_labels = len(np.unique(y_train))
+
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+x_train = x_train.astype('float32').reshape((-1, 784)) / 255
+x_test = x_test.astype('float32').reshape((-1, 784)) / 255
+
+n_hiddens = [256, 256]
+dropout= 0.5
+
+inputs = Input(shape=(784,) , name='inputs')
+x = inputs
+x = Dense(units=n_hiddens[0], name='dense_1')(x)
+x = Activation('relu',name='relu_1')(x)
+x = Dropout(dropout)(x)
+
+x = Dense(units=n_hiddens[1], name='dense_2')(x)
+x = Activation('relu',name='relu_2')(x)
+x = Dropout(dropout)(x)
+
+x = Dense(units=n_labels, name='output_layer')(x)
+outputs = Activation('softmax',name='softmax')(x)
+
+
+model = Model(inputs= inputs, outputs=outputs, name='mlp-mnist')
+model.summary()
+model.compile(loss='categorical_crossentropy',
+             optimizer='adam',
+             metrics=['accuracy'])
+plot_model(model, to_file='mlp-mnist.png', show_shapes=True)
+
+model.fit(x = x_train,
+          y=y_train,
+          epochs=20,
+          batch_size=32,
+          validation_data=(x_test, y_test)
+         )
